@@ -10,9 +10,9 @@ namespace AccProject.Models
             {
                 var clients = new Client[]
                 {
-                    new Client{FirstName="Nombre1", LastName="Apellido1", Email="email1@gmail.com", Password="pass1" },
-                    new Client{FirstName="Nombre2", LastName="Apellido2", Email="email2@gmail.com", Password="pass2" },
-                    new Client{FirstName="Nombre3", LastName="Apellido3", Email="email3@gmail.com", Password="pass3" }
+                    new Client{FirstName="Kaladin", LastName="Stormblessed", Email="kaladin_bridge4@gmail.com", Password="syl" },
+                    new Client{FirstName="Shallan", LastName="Davar", Email="sdavar@gmail.com", Password="pattern" },
+                    new Client{FirstName="Adolin", LastName="Kholin", Email="best_dueler@gmail.com", Password="maya" }
                 };
 
                 context.Clients.AddRange(clients);
