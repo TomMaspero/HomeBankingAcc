@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeBankingAcc.Migrations
 {
     [DbContext(typeof(HomeBankingContext))]
-    [Migration("20240528163821_AddAccountEntity")]
-    partial class AddAccountEntity
+    [Migration("20240529153400_addTransactionEntity")]
+    partial class addTransactionEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -77,6 +77,36 @@ namespace HomeBankingAcc.Migrations
                     b.ToTable("Clients");
                 });
 
+            modelBuilder.Entity("HomeBankingAcc.Models.Transaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("HomeBankingAcc.Models.Account", b =>
                 {
                     b.HasOne("HomeBankingAcc.Models.Client", "Client")
@@ -86,6 +116,22 @@ namespace HomeBankingAcc.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("HomeBankingAcc.Models.Transaction", b =>
+                {
+                    b.HasOne("HomeBankingAcc.Models.Account", "Account")
+                        .WithMany("Transactions")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("HomeBankingAcc.Models.Account", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("HomeBankingAcc.Models.Client", b =>
