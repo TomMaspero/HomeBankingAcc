@@ -7,10 +7,10 @@ namespace HomeBankingAcc.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClientController : ControllerBase
+    public class ClientsController : ControllerBase
     {
         private readonly IClientRepository _clientRepository;
-        public ClientController(IClientRepository clientRepository)
+        public ClientsController(IClientRepository clientRepository)
         {
             _clientRepository = clientRepository;
         }

@@ -19,7 +19,7 @@ namespace HomeBankingAcc.Repositories.Implementations
         public IEnumerable<Account> GetAllAccounts()
         {
             return FindAll()
-                .Include(c => c.Transactions)
+                .Include(a => a.Transactions)
                 .ToList();
         }
         public void Save(Account account)

@@ -14,10 +14,10 @@ builder.Services.AddDbContext<HomeBankingContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
     );
 
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-
 // Add repositories to the container
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 var app = builder.Build();
 
