@@ -103,6 +103,40 @@ namespace AccProject.Models
                 context.SaveChanges();
 
             }
+            if (!context.Cards.Any())
+            {
+                var client1 = context.Clients.FirstOrDefault(c => c.Email == "kaladin_bridge4@gmail.com");
+                if(client1 != null)
+                {
+                    var cards = new Card[]
+                    {
+                        new Card
+                        {
+                            ClientId = client1.Id,
+                            CardHolder = client1.FirstName + " " + client1.LastName,
+                            Type = CardType.DEBIT,
+                            Color = CardColor.GOLD,
+                            Number = "3325-6745-7876-4445",
+                            Cvv = 990,
+                            FormDate = DateTime.Now,
+                            ThruDate = DateTime.Now.AddYears(4),
+                        },
+                        new Card
+                        {
+                            ClientId = client1.Id,
+                            CardHolder = client1.FirstName + " " + client1.LastName,
+                            Type = CardType.CREDIT,
+                            Color = CardColor.TITANIUM,
+                            Number = "1111-1111-1111-1111",
+                            Cvv = 001,
+                            FormDate = DateTime.Now,
+                            ThruDate= DateTime.Now.AddYears(5),
+                        }
+                    };
+                    context.Cards.AddRange(cards);
+                }
+                context.SaveChanges();
+            }
         }
 
     }

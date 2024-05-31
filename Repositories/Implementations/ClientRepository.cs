@@ -15,6 +15,7 @@ namespace HomeBankingAcc.Repositories.Implementations
                 .Include(c => c.Accounts)
                 .Include(c => c.ClientLoans)
                     .ThenInclude(cl => cl.Loan)
+                .Include(c => c.Cards)
                 .FirstOrDefault();
         }
 
@@ -24,9 +25,9 @@ namespace HomeBankingAcc.Repositories.Implementations
                 .Include(c => c.Accounts)
                 .Include(c => c.ClientLoans)
                     .ThenInclude(cl => cl.Loan)
+                .Include(c => c.Cards)
                 .ToList();
         }
-
         public void Save(Client client)
         {
             Create(client);
