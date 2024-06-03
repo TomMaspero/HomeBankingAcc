@@ -8,7 +8,6 @@ namespace HomeBankingAcc.Repositories
     public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         protected HomeBankingContext RepositoryContext { get; set; }
-
         protected RepositoryBase(HomeBankingContext repositoryContext)
         {
             this.RepositoryContext = repositoryContext;

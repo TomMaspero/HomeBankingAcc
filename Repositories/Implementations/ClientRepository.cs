@@ -19,6 +19,15 @@ namespace HomeBankingAcc.Repositories.Implementations
                 .FirstOrDefault();
         }
 
+        public Client FindByEmail(string email)
+        {
+            return FindByCondition(c => c.Email.ToUpper() == email.ToUpper())
+                .Include(c => c.Accounts)
+                .Include(c => c.ClientLoans)
+                    .ThenInclude(cl => cl.Loan)
+                .Include(c => c.Cards)
+                .FirstOrDefault();
+        }
         public IEnumerable<Client> GetAllClients()
         {
             return FindAll()

@@ -2,17 +2,33 @@ using AccProject.Models;
 using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
 using HomeBankingAcc.Repositories.Implementations;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Add context to the container
 builder.Services.AddDbContext<HomeBankingContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
     );
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    options.LoginPath = new PathString("/index.html"); //ruta a la que se redirige al usuario cuando falla la sesión
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ClientOnly", policy => policy.RequireClaim("Client"));
+});
+
 
 // Add repositories to the container
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
@@ -45,12 +61,20 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
 }
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.MapControllers();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
