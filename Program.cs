@@ -18,12 +18,14 @@ builder.Services.AddDbContext<HomeBankingContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
     );
 
+//Add Authentication to the container
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10 );
     options.LoginPath = new PathString("/index.html"); //ruta a la que se redirige al usuario cuando falla la sesión
 });
 
+//Add authorization to the container
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("ClientOnly", policy => policy.RequireClaim("Client"));

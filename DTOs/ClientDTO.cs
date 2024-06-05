@@ -1,4 +1,5 @@
 ﻿using HomeBankingAcc.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace HomeBankingAcc.DTOs
 {
@@ -20,7 +21,12 @@ namespace HomeBankingAcc.DTOs
             Accounts = client.Accounts.Select(a => new AccountClientDTO(a)).ToList();
             Loans = client.ClientLoans.Select(cl => new ClientLoanDTO(cl)).ToList();
             Cards = client.Cards.Select(ca => new CardDTO(ca)).ToList();
-
+        }
+        public ClientDTO(NewClientDTO newClientDTO)
+        {
+            FirstName = newClientDTO.FirstName;
+            LastName = newClientDTO.LastName;
+            Email = newClientDTO.Email;
         }
     }
 }

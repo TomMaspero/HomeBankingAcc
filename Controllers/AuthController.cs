@@ -1,47 +1,56 @@
-﻿using HomeBankingAcc.Models;
+﻿using HomeBankingAcc.DTOs;
+using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace HomeBankingAcc.Controllers
 {
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private IClientRepository _clientRepository;
+        private readonly IClientRepository _clientRepository;
+
         public AuthController(IClientRepository clientRepository)
         {
             _clientRepository = clientRepository;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Client client)
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
             try
             {
-                Client user = _clientRepository.FindByEmail(client.Email);
-                if (user == null || !String.Equals(user.Password, client.Password)){
-                    return Unauthorized();
+                Client user = _clientRepository.FindByEmail(loginDTO.Email);
+                if(user == null)
+                {
+                    return StatusCode(403, "User not found");
+                }
+                if (!user.Password.Equals(loginDTO.Password))
+                {
+                    return StatusCode(403, "Invalid password");
                 }
                 var claims = new List<Claim>
                 {
-                    new Claim("Client", user.Email),
+                    new Claim("Client", user.Email)
                 };
                 var claimsIdentity = new ClaimsIdentity(
                     claims,
                     CookieAuthenticationDefaults.AuthenticationScheme
-                    );
+                );
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity));
+                    new ClaimsPrincipal(claimsIdentity)
+                );
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
             }
         }
 
@@ -50,13 +59,12 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                await HttpContext.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
     }
