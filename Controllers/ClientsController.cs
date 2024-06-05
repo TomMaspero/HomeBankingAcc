@@ -20,6 +20,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllClients()
         {
             try
@@ -34,6 +35,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetClientById(long id) 
         {
             try
@@ -71,38 +73,6 @@ namespace HomeBankingAcc.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-        //[HttpPost]
-        //public IActionResult Post([FromBody] Client client)
-        //{
-        //    try
-        //    {
-        //        if(String.IsNullOrEmpty(client.Email) || 
-        //                String.IsNullOrEmpty(client.Password) ||
-        //                String.IsNullOrEmpty(client.FirstName) ||
-        //                String.IsNullOrEmpty(client.LastName)
-        //            ) {
-        //            return StatusCode(403, "datos inválidos");
-        //        }
-        //        Client user = _clientRepository.FindByEmail(client.Email);
-        //        if(user != null)
-        //        {
-        //            return StatusCode(403, "Email está en uso");
-        //        }
-        //        Client newClient = new Client
-        //        {
-        //            Email = client.Email,
-        //            Password = client.Password,
-        //            FirstName = client.FirstName,
-        //            LastName = client.LastName,
-        //        };
-        //        _clientRepository.Save(newClient);
-        //        return Created("", newClient);
-        //    }
-        //    catch(Exception ex) {
-        //        return StatusCode(500, ex.Message);
-        //    }
-        //}
 
         [HttpPost]
         public IActionResult NewClient([FromBody]NewClientDTO newClientDTO)
