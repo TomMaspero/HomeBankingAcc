@@ -164,15 +164,25 @@ namespace HomeBankingAcc.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
         public string genCardNumber()
         {
-            return "1234";
-        }
+            string cardNumber = "";
+            List<int> cardDigits = new List<int>();
+            do
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    int digits = RandomNumberGenerator.GetInt32(1, 9999);
+                    cardDigits.Add(digits);
+                }
+                cardNumber = string.Join("-", cardDigits.ConvertAll(d => d.ToString("D4")));
 
+            } while (_cardRepository.FindByNumber(cardNumber) != null);
+            return cardNumber;
+        }
         public int genCvv()
         {
-            return 123;
+            return RandomNumberGenerator.GetInt32(0, 999);
         }
 
         [HttpPost("current/cards")]
@@ -183,19 +193,39 @@ namespace HomeBankingAcc.Controllers
             {
                 Client client = getCurrentClient();
 
-                Card newCard = new Card
+                CardType cardType = (CardType)Enum.Parse(typeof(CardType), newCardDTO.type);
+                CardColor cardColor = (CardColor)Enum.Parse(typeof(CardColor), newCardDTO.color);
+
+                List<Card> ClientCards = (List<Card>)_cardRepository.FindByType(cardType, client.Id);
+
+                if(ClientCards.Count < 3)
                 {
-                    CardHolder = client.FirstName + " " + client.LastName,
-                    Type = (CardType)Enum.Parse(typeof(CardType), newCardDTO.type),
-                    Color = (CardColor)Enum.Parse(typeof(CardColor), newCardDTO.color),
-                    Number = genCardNumber(),
-                    Cvv = genCvv(),
-                    FromDate = DateTime.Now,
-                    ThruDate = DateTime.Now.AddYears(5),
-                    ClientId = client.Id,
-                };
-                _cardRepository.Save(newCard);
-                return Ok();
+                    if(ClientCards.Any(card => card.Color == cardColor))
+                    {
+                        return StatusCode(403, "Card already exists");
+                    }
+                    else
+                    {
+                        Card newCard = new Card
+                        {
+                            CardHolder = client.FirstName + " " + client.LastName,
+                            Type = cardType,
+                            Color = cardColor,
+                            Number = genCardNumber(),
+                            Cvv = genCvv(),
+                            FromDate = DateTime.Now,
+                            ThruDate = DateTime.Now.AddYears(5),
+                            ClientId = client.Id,
+                        };
+                        _cardRepository.Save(newCard);
+                        return Ok();
+                    }
+                }
+                else
+                {
+                    return StatusCode(403, $"Max number of cards of type {cardType.ToString()}");
+                }
+
             }
             catch (Exception ex)
             {
