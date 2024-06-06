@@ -22,7 +22,7 @@ namespace HomeBankingAcc.Migrations
                     Color = table.Column<int>(type: "int", nullable: false),
                     Number = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Cvv = table.Column<int>(type: "int", nullable: false),
-                    FormDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FromDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ThruDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ClientId = table.Column<long>(type: "bigint", nullable: false)
                 },

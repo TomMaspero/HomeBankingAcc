@@ -70,6 +70,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseDefaultFiles(); //para que abra directamente el login
 app.UseStaticFiles();
 
 app.UseRouting();

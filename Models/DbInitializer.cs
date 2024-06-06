@@ -118,7 +118,7 @@ namespace AccProject.Models
                             Color = CardColor.GOLD,
                             Number = "3325-6745-7876-4445",
                             Cvv = 990,
-                            FormDate = DateTime.Now,
+                            FromDate = DateTime.Now,
                             ThruDate = DateTime.Now.AddYears(4),
                         },
                         new Card
@@ -129,7 +129,7 @@ namespace AccProject.Models
                             Color = CardColor.TITANIUM,
                             Number = "1111-1111-1111-1111",
                             Cvv = 001,
-                            FormDate = DateTime.Now,
+                            FromDate = DateTime.Now,
                             ThruDate= DateTime.Now.AddYears(5),
                         }
                     };

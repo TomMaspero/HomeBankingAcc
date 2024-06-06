@@ -10,7 +10,7 @@ namespace HomeBankingAcc.DTOs
         public string Color { get; set; }
         public string Number { get; set; }
         public int Cvv { get; set; }
-        public DateTime FormDate { get; set; }
+        public DateTime FromDate { get; set; }
         public DateTime ThruDate { get; set; }
 
         public CardDTO(Card card)
@@ -21,7 +21,7 @@ namespace HomeBankingAcc.DTOs
             Color = card.Color.ToString();
             Number = card.Number;
             Cvv = card.Cvv;
-            FormDate = card.FormDate;
+            FromDate = card.FromDate;
             ThruDate = card.ThruDate;
         }
     }

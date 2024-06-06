@@ -27,5 +27,10 @@ namespace HomeBankingAcc.Repositories.Implementations
             Create(account);
             SaveChanges();
         }
+        public Account GetAccountByNumber(string number)
+        {
+            return FindByCondition(a => a.Number == number)
+                .FirstOrDefault();
+        }
     }
 }

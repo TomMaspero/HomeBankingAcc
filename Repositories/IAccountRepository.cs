@@ -7,5 +7,6 @@ namespace HomeBankingAcc.Repositories
         IEnumerable<Account> GetAllAccounts();
         void Save(Account account); 
         Account FindById(long id);
+        Account GetAccountByNumber(string number);
     }
 }
