@@ -5,9 +5,10 @@ namespace HomeBankingAcc.Repositories
     public interface ICardRepository
     {
         IEnumerable<Card> GetAllCards();
-        void Save(Card card);
+        IEnumerable<Card> GetCardsByClient(long clientId);
+        IEnumerable<Card> FindByType(CardType type, long clientId);
         Card FindById(long id);
         Card FindByNumber(string cardNumber);
-        IEnumerable<Card> FindByType(CardType type, long clientId);
+        void Save(Card card);
     }
 }

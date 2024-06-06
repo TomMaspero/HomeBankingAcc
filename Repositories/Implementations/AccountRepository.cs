@@ -22,6 +22,12 @@ namespace HomeBankingAcc.Repositories.Implementations
                 .Include(a => a.Transactions)
                 .ToList();
         }
+        public IEnumerable<Account> GetAccountsByClient(long clientId)
+        {
+            return FindByCondition(a => a.ClientId == clientId)
+                .Include(a => a.Transactions)
+                .ToList();
+        }
         public void Save(Account account)
         {
             Create(account);
@@ -32,5 +38,6 @@ namespace HomeBankingAcc.Repositories.Implementations
             return FindByCondition(a => a.Number == number)
                 .FirstOrDefault();
         }
+        
     }
 }

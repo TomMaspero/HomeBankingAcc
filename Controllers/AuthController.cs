@@ -46,7 +46,7 @@ namespace HomeBankingAcc.Controllers
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(claimsIdentity)
                 );
-                return Ok();
+                return Ok($"Welcome {loginDTO.Email}");
             }
             catch (Exception ex)
             {
@@ -60,7 +60,7 @@ namespace HomeBankingAcc.Controllers
             try
             {
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Ok();
+                return Ok("Logged out succesfully");
             }
             catch (Exception ex)
             {

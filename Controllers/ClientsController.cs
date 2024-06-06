@@ -152,12 +152,29 @@ namespace HomeBankingAcc.Controllers
                         ClientId = client.Id
                     };
                     _accountRepository.Save(newAccount);
-                    return Ok();
+                    return StatusCode(201, newAccount);
                 }
                 else
                 {
                     return StatusCode(403, "Max number of accounts reached");
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("current/accounts")]
+        [Authorize(Policy = "ClientOnly")]
+        public IActionResult GetCurrentClientsAccounts()
+        {
+            try
+            {
+                Client client = getCurrentClient();
+                var clientAccounts = _accountRepository.GetAccountsByClient(client.Id);
+                var clientAccountsDTO = clientAccounts.Select(ca => new AccountDTO(ca)).ToList();
+                return Ok(clientAccountsDTO);
             }
             catch (Exception ex)
             {
@@ -218,7 +235,7 @@ namespace HomeBankingAcc.Controllers
                             ClientId = client.Id,
                         };
                         _cardRepository.Save(newCard);
-                        return Ok();
+                        return StatusCode(201, newCard);
                     }
                 }
                 else
@@ -226,6 +243,22 @@ namespace HomeBankingAcc.Controllers
                     return StatusCode(403, $"Max number of cards of type {cardType.ToString()}");
                 }
 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpGet("current/cards")]
+        [Authorize(Policy = "ClientOnly")]
+        public IActionResult GetCurrentClientCards()
+        {
+            try
+            {
+                Client client = getCurrentClient();
+                var clientCards = _cardRepository.GetCardsByClient(client.Id);
+                var clientCardsDTO = clientCards.Select(cc => new CardDTO(cc)).ToList();
+                return Ok(clientCardsDTO);
             }
             catch (Exception ex)
             {
