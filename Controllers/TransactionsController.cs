@@ -91,7 +91,7 @@ namespace HomeBankingAcc.Controllers
                     {
                         Type = TransactionType.DEBIT,
                         Amount = -transferDTO.Amount,
-                        Description = transferDTO.Description,
+                        Description = transferDTO.Description + " - Transfer sent to " + accountTo.Number.ToString(),
                         Date = DateTime.Now,
                         AccountId = accountFrom.Id,
                     },
@@ -99,7 +99,7 @@ namespace HomeBankingAcc.Controllers
                     {
                         Type = TransactionType.CREDIT,
                         Amount = transferDTO.Amount,
-                        Description = transferDTO.Description,
+                        Description = transferDTO.Description + " - Transfer received from " + accountFrom.Number.ToString(),
                         Date = DateTime.Now,
                         AccountId = accountTo.Id,
                     }
