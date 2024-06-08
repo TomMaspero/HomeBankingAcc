@@ -152,7 +152,7 @@ namespace HomeBankingAcc.Controllers
                         ClientId = client.Id
                     };
                     _accountRepository.Save(newAccount);
-                    return StatusCode(201, newAccount);
+                    return StatusCode(201, new AccountDTO(newAccount));
                 }
                 else
                 {
