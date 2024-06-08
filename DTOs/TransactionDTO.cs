@@ -1,4 +1,5 @@
 ﻿using HomeBankingAcc.Models;
+using Microsoft.Identity.Client;
 using System.Text.Json.Serialization;
 
 namespace HomeBankingAcc.DTOs
@@ -12,12 +13,13 @@ namespace HomeBankingAcc.DTOs
             Amount = transaction.Amount;
             Description = transaction.Description;
             Date = transaction.Date;
+            AccountId = transaction.AccountId;
         }
-        [JsonIgnore]
         public long Id { get; set; }
         public TransactionType Type { get; set; }
         public double Amount { get; set; }
         public string Description { get; set; }
         public DateTime Date { get; set; }
+        public long AccountId { get; set; }
     }
 }

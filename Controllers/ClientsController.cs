@@ -235,7 +235,7 @@ namespace HomeBankingAcc.Controllers
                             ClientId = client.Id,
                         };
                         _cardRepository.Save(newCard);
-                        return StatusCode(201, newCard);
+                        return StatusCode(201, new CardDTO(newCard));
                     }
                 }
                 else

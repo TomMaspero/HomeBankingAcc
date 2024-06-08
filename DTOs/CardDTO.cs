@@ -12,7 +12,7 @@ namespace HomeBankingAcc.DTOs
         public int Cvv { get; set; }
         public DateTime FromDate { get; set; }
         public DateTime ThruDate { get; set; }
-
+        public long ClientId { get; set; }
         public CardDTO(Card card)
         {
             Id = card.Id;
@@ -23,6 +23,7 @@ namespace HomeBankingAcc.DTOs
             Cvv = card.Cvv;
             FromDate = card.FromDate;
             ThruDate = card.ThruDate;
+            ClientId = card.ClientId;
         }
     }
 }
