@@ -44,6 +44,7 @@ namespace HomeBankingAcc.Repositories.Implementations
         public Account GetAccountByNumber(string number)
         {
             return FindByCondition(a => a.Number == number)
+                .Include(a => a.Transactions)
                 .FirstOrDefault();
         }
         

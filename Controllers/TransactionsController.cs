@@ -56,7 +56,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                if(transferDTO.Amount == 0 || transferDTO.FromAccountNumber.IsNullOrEmpty() 
+                if(transferDTO.Amount <= 0 || transferDTO.FromAccountNumber.IsNullOrEmpty() 
                     || transferDTO.ToAccountNumber.IsNullOrEmpty() || transferDTO.Description.IsNullOrEmpty())   
                 {
                     return StatusCode(403, "Error: Invalid Transaction");
