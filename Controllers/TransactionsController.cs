@@ -22,6 +22,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllTransactions() 
         {
             try
@@ -37,6 +38,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetTransactionById(long id)
         {
             try

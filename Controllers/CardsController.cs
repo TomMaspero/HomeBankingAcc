@@ -1,5 +1,6 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomeBankingAcc.Controllers
@@ -14,6 +15,7 @@ namespace HomeBankingAcc.Controllers
             _cardRepository = cardRepository;
         }
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllCards()
         {
             try
@@ -28,6 +30,7 @@ namespace HomeBankingAcc.Controllers
             }
         }
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetCardById(long id)
         {
             try

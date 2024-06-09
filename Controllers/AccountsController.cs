@@ -1,5 +1,6 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomeBankingAcc.Controllers
@@ -15,6 +16,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllAccounts()
         {
             try
@@ -31,6 +33,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAccountById(long id) {
             try
             {
