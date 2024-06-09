@@ -26,6 +26,7 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllClients()
         {
             try
@@ -41,7 +42,8 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetClientById(long id)
+        [Authorize(Policy = "AdminOnly")]
+        public IActionResult GetClientById(long id) 
         {
             try
             {

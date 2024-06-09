@@ -38,6 +38,11 @@ namespace HomeBankingAcc.Controllers
                 {
                     new Claim("Client", user.Email)
                 };
+                if (user.Email.Equals("kaladin_bridge4@gmail.com"))
+                {
+                    Claim adminClaim = new Claim("Admin", user.Email);
+                    claims.Add(adminClaim);
+                }
                 var claimsIdentity = new ClaimsIdentity(
                     claims,
                     CookieAuthenticationDefaults.AuthenticationScheme
