@@ -33,7 +33,10 @@ namespace HomeBankingAcc.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+        //[Authorize(Policy = "AdminOnly")]
+        /*  No le dejo la política de Admin porque el front utiliza el endpoint para acceder a los datos de la cuenta
+         *  De lo contrario el front se muestra vacío al acceder a las cuentas de un cliente que no es admin
+         */
         public IActionResult GetAccountById(long id) {
             try
             {
