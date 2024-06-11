@@ -1,5 +1,4 @@
-﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Repositories;
+﻿using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +8,10 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class CardsController : Controller
     {
-        private readonly ICardRepository _cardRepository;
-        public CardsController(ICardRepository cardRepository)
+        private readonly ICardService _cardService;
+        public CardsController(ICardService cardService)
         {
-            _cardRepository = cardRepository;
+            _cardService = cardService;
         }
         [HttpGet]
         [Authorize(Policy = "AdminOnly")]
@@ -20,8 +19,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var cards = _cardRepository.GetAllCards();
-                var cardsDTO = cards.Select(c => new CardDTO(c)).ToList();
+                var cardsDTO = _cardService.GetAllCards();
                 return Ok(cardsDTO);
             }
             catch (Exception ex)
@@ -35,8 +33,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var card = _cardRepository.FindById(id);
-                var cardDTO = new CardDTO(card);
+                var cardDTO = _cardService.FindById(id);
                 return Ok(cardDTO);
             }
             catch (Exception ex)
