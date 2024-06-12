@@ -1,6 +1,7 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System.Security.Cryptography;
 
 namespace HomeBankingAcc.Services.Implementations
@@ -59,19 +60,25 @@ namespace HomeBankingAcc.Services.Implementations
             return RandomNumberGenerator.GetInt32(0, 999);
         }
 
-        public ClientDTO getCurrent()
+        public Client getCurrentClient(string email)
         {
-
-        }
-        public ClientDTO getCurrentClient(string email)
-        {
-            if(email == null)
+            if (email == null)
             {
                 throw new Exception("User not found");
             }
             var client = _clientRepository.FindByEmail(email);
+            return client;
+        }
+        public ClientDTO getCurrentClientDTO(string email)
+        {
+            var client = getCurrentClient(email);
             var clientDTO = new ClientDTO(client);
             return clientDTO;
+        }
+
+        public validateClient(NewClientDTO newClientDTO)
+        {
+
         }
     }
 }

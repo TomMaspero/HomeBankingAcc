@@ -114,13 +114,19 @@ namespace HomeBankingAcc.Controllers
         //    return _clientRepository.FindByEmail(email);
         //}
 
+        public string getCurrentClientEmail()
+        {
+            string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+            return currentClientEmail;
+        }
+
         [HttpGet("current")]
         [Authorize(Policy = "ClientOnly")]
         public IActionResult GetCurrent()
         {
             try
             {
-                string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                string currentClientEmail = getCurrentClientEmail();
                 var clientDTO = _clientService.getCurrentClient(currentClientEmail);
                 return Ok(clientDTO);
             }

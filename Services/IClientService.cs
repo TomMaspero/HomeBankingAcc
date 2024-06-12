@@ -7,7 +7,8 @@ namespace HomeBankingAcc.Services
     {
         ClientDTO GetClientById(long id);
         IEnumerable<ClientDTO> GetAllClients();
-        ClientDTO getCurrentClient(string email);
+        Client getCurrentClient(string email);
+        ClientDTO getCurrentClientDTO(string email);
         string createAccountNumber();
         string genCardNumber();
         int genCvv();
