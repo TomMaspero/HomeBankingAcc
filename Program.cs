@@ -34,7 +34,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireClaim("Admin"));
 });
 
-
 // Add repositories to the container
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -45,10 +44,10 @@ builder.Services.AddScoped<IClientLoanRepository, ClientLoanRepository>();
 
 //Add services
 builder.Services.AddScoped<IClientService, ClientService>();
-builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<ICardService, CardService>();
 
 var app = builder.Build();
 
