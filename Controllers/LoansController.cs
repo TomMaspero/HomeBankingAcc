@@ -1,9 +1,7 @@
 ﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Models;
-using HomeBankingAcc.Repositories;
+using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace HomeBankingAcc.Controllers
 {
@@ -11,19 +9,12 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class LoansController : Controller
     {
-        private readonly IClientRepository _clientRepository;
-        private readonly IAccountRepository _accountRepository;
-        private readonly ILoanRepository _loanRepository;
-        private readonly IClientLoanRepository _clientLoanRepository;
-        private readonly ITransactionRepository _transactionRepository;
-
-        public LoansController(ILoanRepository loanRepository, IClientRepository clientRepository, IAccountRepository accountRepository, IClientLoanRepository clientLoanRepository, ITransactionRepository transactionRepository)
+        private readonly ILoanService _loanService;
+        private readonly IClientService _clientService;
+        public LoansController(ILoanService loanService, IClientService clientService)
         {
-            _loanRepository = loanRepository;
-            _clientRepository = clientRepository;
-            _accountRepository = accountRepository;
-            _clientLoanRepository = clientLoanRepository;
-            _transactionRepository = transactionRepository;
+            _loanService = loanService;
+            _clientService = clientService;
         }
 
         [HttpGet]
@@ -31,8 +22,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var loans = _loanRepository.GetAllLoans();
-                var loansDTO = loans.Select(l => new LoanDTO(l)).ToList();
+                var loansDTO = _loanService.GetAllLoans();
                 return Ok(loansDTO);
             }
             catch (Exception ex)
@@ -46,8 +36,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var loan = _loanRepository.FindById(id);
-                var loanDTO = new LoanDTO(loan);
+                var loanDTO = _loanService.GetLoanById(id);
                 return Ok(loanDTO);
             }
             catch (Exception ex)
@@ -62,73 +51,28 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                Loan loan = _loanRepository.FindById(loanApplicationDTO.LoanId);
-                Account account = _accountRepository.GetAccountByNumber(loanApplicationDTO.ToAccountNumber);
-                Client client = getCurrentClient();
-                if(loanApplicationDTO.Amount <= 0) 
-                {
-                    return StatusCode(403, "Error: invalid loan amount");
-                }
-                if(loan == null)
-                {
-                    return StatusCode(403, "Error: loan does not exist!");
-                }
-                if(loanApplicationDTO.Amount > loan.MaxAmount)
-                {
-                    return StatusCode(403, "Error: loan cannot exceed the maximum amount");
-                }
-                if(loanApplicationDTO.Payments.IsNullOrEmpty())
-                {
-                    return StatusCode(403, "Error: Payments cannot be empty");
-                }
-                if(account == null)
-                {
-                    return StatusCode(403, "Error: the account does not exist");
-                }
-                if (!client.Accounts.Any(acc => acc.Number.Equals(account.Number)))
-                {
-                    return StatusCode(403, "Error: the account does not belong to the current client");
-                }
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
 
-                // Actualizar el balance de la cuenta
+                var (isValid, errorMessage) = _loanService.validateLoan(currentClientId, loanApplicationDTO);
 
-                ClientLoan newClientLoan = new ClientLoan
-                {
-                    Amount = loanApplicationDTO.Amount * 1.2,
-                    Payments = loanApplicationDTO.Payments,
-                    ClientId = client.Id,
-                    LoanId = loanApplicationDTO.LoanId,
-                };
-                _clientLoanRepository.Save(newClientLoan);
+                if (!isValid)
+                    return StatusCode(403, errorMessage);
 
-                Transaction loanTransaction = new Transaction
-                {
-                    Type = TransactionType.CREDIT,
-                    Amount = loanApplicationDTO.Amount,
-                    Description = "Loan: " + loan.Name + " to Account " + account.Number,
-                    Date = DateTime.Now,
-                    AccountId = account.Id,
-                };
-                _transactionRepository.Save(loanTransaction);
+                var newClientLoanDTO = _loanService.createLoan(currentClientId, loanApplicationDTO);
 
-                account.Balance += loanApplicationDTO.Amount;
-                _accountRepository.Save(account);
-                
-                return Ok(new NewClientLoanDTO(newClientLoan, loan,loanTransaction));
+                return Ok(newClientLoanDTO);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        public Client getCurrentClient()
+        public string getCurrentClientEmail()
         {
-            string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
-            if (email == string.Empty)
-            {
-                throw new Exception("User not found");
-            }
-            return _clientRepository.FindByEmail(email);
+            string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+            return currentClientEmail;
         }
+
     }
 }
