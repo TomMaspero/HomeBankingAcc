@@ -1,6 +1,8 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
+using HomeBankingAcc.Repositories.Implementations;
+using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,14 +17,19 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class ClientsController : ControllerBase
     {
-        private readonly IClientRepository _clientRepository;
-        private readonly IAccountRepository _accountRepository;
-        private readonly ICardRepository _cardRepository;
-        public ClientsController(IClientRepository clientRepository, IAccountRepository accountRepository, ICardRepository cardRepository)
+        //private readonly IClientRepository _clientRepository;
+        //private readonly IAccountRepository _accountRepository;
+        //private readonly ICardRepository _cardRepository;
+        private readonly IClientService _clientService;
+        //public ClientsController(IClientRepository clientRepository, IAccountRepository accountRepository, ICardRepository cardRepository)
+        //{
+        //    _clientRepository = clientRepository;
+        //    _accountRepository = accountRepository;
+        //    _cardRepository = cardRepository;
+        //}
+        public ClientsController(IClientService clientService)
         {
-            _clientRepository = clientRepository;
-            _accountRepository = accountRepository;
-            _cardRepository = cardRepository;
+            _clientService = clientService;
         }
 
         [HttpGet]
@@ -31,8 +38,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var clients = _clientRepository.GetAllClients();
-                var clientsDTO = clients.Select(c => new ClientDTO(c)).ToList();
+                var clientsDTO = _clientService.GetAllClients();
                 return Ok(clientsDTO);
             }
             catch (Exception e)
@@ -47,8 +53,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var client = _clientRepository.FindById(id);
-                var clientDTO = new ClientDTO(client);
+                var clientDTO = _clientService.GetClientById(id);
                 return Ok(clientDTO);
             }
             catch (Exception e)
@@ -98,24 +103,16 @@ namespace HomeBankingAcc.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        public Client getCurrentClient()
-        {
-            string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
-            if (email == string.Empty)
-            {
-                throw new Exception("User not found");
-            }
-            return _clientRepository.FindByEmail(email);
-        }
-        public string createAccountNumber()
-        {
-            string accNumber = "";
-            do
-            {
-                accNumber = "VIN-" + RandomNumberGenerator.GetInt32(0, 99999999);
-            } while (_accountRepository.GetAccountByNumber(accNumber) != null);
-            return accNumber;
-        }
+
+        //public Client getCurrentClient()
+        //{
+        //    string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+        //    if (email == string.Empty)
+        //    {
+        //        throw new Exception("User not found");
+        //    }
+        //    return _clientRepository.FindByEmail(email);
+        //}
 
         [HttpGet("current")]
         [Authorize(Policy = "ClientOnly")]
@@ -123,12 +120,9 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                Client client = getCurrentClient();
-                if (client == null)
-                {
-                    return StatusCode(403, "User not found");
-                }
-                return Ok(new ClientDTO(client));
+                string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                var clientDTO = _clientService.getCurrentClient(currentClientEmail);
+                return Ok(clientDTO);
             }
             catch (Exception ex)
             {
@@ -182,26 +176,6 @@ namespace HomeBankingAcc.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-        }
-        public string genCardNumber()
-        {
-            string cardNumber = "";
-            List<int> cardDigits = new List<int>();
-            do
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    int digits = RandomNumberGenerator.GetInt32(1, 9999);
-                    cardDigits.Add(digits);
-                }
-                cardNumber = string.Join("-", cardDigits.ConvertAll(d => d.ToString("D4")));
-
-            } while (_cardRepository.FindByNumber(cardNumber) != null);
-            return cardNumber;
-        }
-        public int genCvv()
-        {
-            return RandomNumberGenerator.GetInt32(0, 999);
         }
 
         [HttpPost("current/cards")]

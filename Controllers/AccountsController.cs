@@ -1,6 +1,4 @@
-﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Repositories;
-using HomeBankingAcc.Services;
+﻿using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

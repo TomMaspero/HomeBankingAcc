@@ -44,6 +44,7 @@ builder.Services.AddScoped<ICardRepository, CardRepository>();
 builder.Services.AddScoped<IClientLoanRepository, ClientLoanRepository>();
 
 //Add services
+builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
