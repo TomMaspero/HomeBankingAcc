@@ -1,8 +1,6 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using System.Security.Cryptography;
 
 namespace HomeBankingAcc.Services.Implementations
 {

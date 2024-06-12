@@ -1,9 +1,7 @@
 ﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Models;
-using HomeBankingAcc.Repositories;
+using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace HomeBankingAcc.Controllers
 {
@@ -11,14 +9,12 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class TransactionsController : Controller
     {
-        private readonly ITransactionRepository _transactionRepository;
-        private readonly IAccountRepository _accountRepository;
-        private readonly IClientRepository _clientRepository;
-        public TransactionsController(ITransactionRepository transactionRepository, IAccountRepository accountRepository, IClientRepository clientRepository)
+        private readonly ITransactionService _transactionService;
+        private readonly IClientService _clientService;
+        public TransactionsController(ITransactionService transactionService, IClientService clientService)
         {
-            _transactionRepository = transactionRepository;
-            _accountRepository = accountRepository;
-            _clientRepository = clientRepository;
+            _transactionService = transactionService;
+            _clientService = clientService;
         }
 
         [HttpGet]
@@ -27,8 +23,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var transactions = _transactionRepository.GetAllTransactions();
-                var transactionsDTO = transactions.Select(t => new TransactionDTO(t)).ToList();
+                var transactionsDTO = _transactionService.GetAllTransactions();
                 return Ok(transactionsDTO);
             }
             catch (Exception ex)
@@ -43,8 +38,7 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                var transaction = _transactionRepository.FindById(id);
-                var transactionDTO = new TransactionDTO(transaction);
+                var transactionDTO = _transactionService.GetTransactionById(id);
                 return Ok(transactionDTO);
             }
             catch (Exception ex)
@@ -58,68 +52,14 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                if(transferDTO.Amount <= 0 || transferDTO.FromAccountNumber.IsNullOrEmpty() 
-                    || transferDTO.ToAccountNumber.IsNullOrEmpty() || transferDTO.Description.IsNullOrEmpty())   
-                {
-                    return StatusCode(403, "Error: Invalid Transaction");
-                }
-                if (transferDTO.FromAccountNumber.Equals(transferDTO.ToAccountNumber))
-                {
-                    return StatusCode(403, "Error: The account of origin cannot be the same as the destination account");
-                }
-                Account accountFrom = _accountRepository.GetAccountByNumber(transferDTO.FromAccountNumber);
-                if(accountFrom == null)
-                {
-                    return StatusCode(403, "Error: the account of origin does not exist");
-                }
-                Client client = getCurrentClient();
-                if(accountFrom.ClientId != client.Id)
-                {
-                    return StatusCode(403, "Error: the account of origin does not belong to the current client");
-                }
-                Account accountTo = _accountRepository.GetAccountByNumber(transferDTO.ToAccountNumber);
-                if(accountTo == null)
-                {
-                    return StatusCode(403, "Error: the destination account does not exist");
-                }
-                if(accountFrom.Balance - transferDTO.Amount < 0)
-                {
-                    return StatusCode(403, "Error: Insufficient funds");
-                }
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
 
-                Transaction[] transactions =
-                {
-                    new Transaction
-                    {
-                        Type = TransactionType.DEBIT,
-                        Amount = -transferDTO.Amount,
-                        Description = transferDTO.Description + " - Transfer sent to " + accountTo.Number.ToString(),
-                        Date = DateTime.Now,
-                        AccountId = accountFrom.Id,
-                    },
-                    new Transaction
-                    {
-                        Type = TransactionType.CREDIT,
-                        Amount = transferDTO.Amount,
-                        Description = transferDTO.Description + " - Transfer received from " + accountFrom.Number.ToString(),
-                        Date = DateTime.Now,
-                        AccountId = accountTo.Id,
-                    }
-                };
-                TransactionDTO[] transactionDTOs = new TransactionDTO[2];
-                int i = 0;
-                foreach(var transaction in transactions)
-                {
-                    _transactionRepository.Save(transaction);
-                    TransactionDTO transactionDTO = new TransactionDTO(transaction);
-                    transactionDTOs[i] = transactionDTO;
-                    i++;
-                }
+                var (isValid, errorMessage) = _transactionService.validateTransaction(currentClientId, transferDTO);
+                if (!isValid)
+                    return StatusCode(403, errorMessage);
 
-                accountFrom.Balance -= transferDTO.Amount;
-                _accountRepository.Save(accountFrom);
-                accountTo.Balance += transferDTO.Amount;
-                _accountRepository.Save(accountTo);
+                var transactionDTOs = _transactionService.createTransaction(transferDTO);
 
                 return StatusCode(201, transactionDTOs);
             }
@@ -128,14 +68,11 @@ namespace HomeBankingAcc.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        public Client getCurrentClient()
+        public string getCurrentClientEmail()
         {
-            string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
-            if (email == string.Empty)
-            {
-                throw new Exception("User not found");
-            }
-            return _clientRepository.FindByEmail(email);
+            string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+            return currentClientEmail;
         }
+
     }
 }

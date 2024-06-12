@@ -1,15 +1,7 @@
 ﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Models;
-using HomeBankingAcc.Repositories;
-using HomeBankingAcc.Repositories.Implementations;
 using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
 
 namespace HomeBankingAcc.Controllers
 {
