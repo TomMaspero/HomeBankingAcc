@@ -1,6 +1,8 @@
 ﻿using HomeBankingAcc.DTOs;
 using HomeBankingAcc.Models;
 using HomeBankingAcc.Repositories;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Security.Cryptography;
 
 namespace HomeBankingAcc.Services.Implementations
 {
@@ -71,7 +73,7 @@ namespace HomeBankingAcc.Services.Implementations
                 FirstName = newClientDTO.FirstName,
                 LastName = newClientDTO.LastName,
                 Email = newClientDTO.Email,
-                Password = newClientDTO.Password,
+                Password = HashPassword(newClientDTO.Password),
             };
             _clientRepository.Save(newClient);
 
@@ -115,9 +117,22 @@ namespace HomeBankingAcc.Services.Implementations
             Client user = _clientRepository.FindByEmail(loginDTO.Email);
             if (user == null)
                 return (false, "User not found");
-            if (!user.Password.Equals(loginDTO.Password))
+            if (!user.Password.Equals(HashPassword(loginDTO.Password)))
                 return (false, "Invalid password");
             return (true, string.Empty);
+        }
+        public string HashPassword(string password)
+        {
+            byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
+            
+            // derive a 256-bit subkey (use HMACSHA256 with 100,000 iterations)
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: password!,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 100000,
+                numBytesRequested: 256 / 8));
+            return hashed;
         }
     }
 }

@@ -14,5 +14,6 @@ namespace HomeBankingAcc.Services
         bool validateAccountCount(long clientId);
         public (bool isValid, string errorMessage) validateClientCards(long clientId, NewCardDTO newCardDTO);
         public (bool isValid, string errorMessage) validateClientUser(LoginDTO loginDTO);
+        public string HashPassword(string password);
     }
 }
