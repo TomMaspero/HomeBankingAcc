@@ -6,5 +6,8 @@ namespace HomeBankingAcc.Services
     {
         AccountDTO GetAccountById(long id);
         IEnumerable<AccountDTO> GetAllAccounts();
+        string createAccountNumber();
+        AccountDTO createAccount(long clientID);
+        IEnumerable<AccountDTO> getClientAccounts(long clientId);
     }
 }

@@ -9,8 +9,9 @@ namespace HomeBankingAcc.Services
         IEnumerable<ClientDTO> GetAllClients();
         Client getCurrentClient(string email);
         ClientDTO getCurrentClientDTO(string email);
-        string createAccountNumber();
-        string genCardNumber();
-        int genCvv();
+        (bool isValid, string errorMessage) validateClient(NewClientDTO newClientDTO);
+        ClientDTO createClient(NewClientDTO clientDTO);
+        bool validateAccountCount(long clientId);
+        public (bool isValid, string errorMessage) validateClientCards(long clientId, NewCardDTO newCardDTO);
     }
 }

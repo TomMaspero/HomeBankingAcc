@@ -17,19 +17,14 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class ClientsController : ControllerBase
     {
-        //private readonly IClientRepository _clientRepository;
-        //private readonly IAccountRepository _accountRepository;
-        //private readonly ICardRepository _cardRepository;
         private readonly IClientService _clientService;
-        //public ClientsController(IClientRepository clientRepository, IAccountRepository accountRepository, ICardRepository cardRepository)
-        //{
-        //    _clientRepository = clientRepository;
-        //    _accountRepository = accountRepository;
-        //    _cardRepository = cardRepository;
-        //}
-        public ClientsController(IClientService clientService)
+        private readonly IAccountService _accountService;
+        private readonly ICardService _cardService;
+        public ClientsController(IClientService clientService, IAccountService accountService, ICardService cardService)
         {
             _clientService = clientService;
+            _accountService = accountService;
+            _cardService = cardService;
         }
 
         [HttpGet]
@@ -67,53 +62,20 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                if (newClientDTO.FirstName.IsNullOrEmpty() || newClientDTO.LastName.IsNullOrEmpty() || newClientDTO.Email.IsNullOrEmpty() || newClientDTO.Password.IsNullOrEmpty())
+                var (isValid, errorMessage) = _clientService.validateClient(newClientDTO);
+                if (!isValid)
                 {
-                    return StatusCode(StatusCodes.Status400BadRequest, "Missing fields");
+                    return StatusCode(StatusCodes.Status400BadRequest, errorMessage);
                 }
-                Client client = _clientRepository.FindByEmail(newClientDTO.Email);
-                if (client != null)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, "Email already in use");
-                }
-                Client newClient = new Client
-                {
-                    FirstName = newClientDTO.FirstName,
-                    LastName = newClientDTO.LastName,
-                    Email = newClientDTO.Email,
-                    Password = newClientDTO.Password,
-                };
-                _clientRepository.Save(newClient);
+                ClientDTO newClient = _clientService.createClient(newClientDTO);
 
-                //Crear una nueva cuenta
-                Client createdClient = _clientRepository.FindByEmail(newClientDTO.Email);
-                Account newAccount = new Account
-                {
-                    Number = createAccountNumber(),
-                    CreationDate = DateTime.Now,
-                    Balance = 0,
-                    ClientId = createdClient.Id
-                };
-                _accountRepository.Save(newAccount);
-
-                return StatusCode(201, new ClientDTO(newClientDTO));
+                return StatusCode(201, newClient);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-        //public Client getCurrentClient()
-        //{
-        //    string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
-        //    if (email == string.Empty)
-        //    {
-        //        throw new Exception("User not found");
-        //    }
-        //    return _clientRepository.FindByEmail(email);
-        //}
-
         public string getCurrentClientEmail()
         {
             string currentClientEmail = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
@@ -127,7 +89,7 @@ namespace HomeBankingAcc.Controllers
             try
             {
                 string currentClientEmail = getCurrentClientEmail();
-                var clientDTO = _clientService.getCurrentClient(currentClientEmail);
+                var clientDTO = _clientService.getCurrentClientDTO(currentClientEmail);
                 return Ok(clientDTO);
             }
             catch (Exception ex)
@@ -143,18 +105,13 @@ namespace HomeBankingAcc.Controllers
             try
             {
                 //traigo al cliente autenticado
-                Client client = getCurrentClient();
-                if (client.Accounts.Count() < 3)
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
+
+                if(_clientService.validateAccountCount(currentClientId))
                 {
-                    Account newAccount = new Account
-                    {
-                        Number = createAccountNumber(),
-                        CreationDate = DateTime.Now,
-                        Balance = 0,
-                        ClientId = client.Id
-                    };
-                    _accountRepository.Save(newAccount);
-                    return StatusCode(201, new AccountDTO(newAccount));
+                    AccountDTO newAccountDTO = _accountService.createAccount(currentClientId);
+                    return StatusCode(201, newAccountDTO);
                 }
                 else
                 {
@@ -173,9 +130,9 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                Client client = getCurrentClient();
-                var clientAccounts = _accountRepository.GetAccountsByClient(client.Id);
-                var clientAccountsDTO = clientAccounts.Select(ca => new AccountDTO(ca)).ToList();
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
+                var clientAccountsDTO = _accountService.getClientAccounts(currentClientId);
                 return Ok(clientAccountsDTO);
             }
             catch (Exception ex)
@@ -190,56 +147,36 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                Client client = getCurrentClient();
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
 
-                CardType cardType = (CardType)Enum.Parse(typeof(CardType), newCardDTO.type);
-                CardColor cardColor = (CardColor)Enum.Parse(typeof(CardColor), newCardDTO.color);
-
-                List<Card> ClientCards = (List<Card>)_cardRepository.FindByType(cardType, client.Id);
-
-                if(ClientCards.Count < 3)
+                var (isValid, errorMessage) = _clientService.validateClientCards(currentClientId,  newCardDTO);
+                if (!isValid)
                 {
-                    if(ClientCards.Any(card => card.Color == cardColor))
-                    {
-                        return StatusCode(403, "Card already exists");
-                    }
-                    else
-                    {
-                        Card newCard = new Card
-                        {
-                            CardHolder = client.FirstName + " " + client.LastName,
-                            Type = cardType,
-                            Color = cardColor,
-                            Number = genCardNumber(),
-                            Cvv = genCvv(),
-                            FromDate = DateTime.Now,
-                            ThruDate = DateTime.Now.AddYears(5),
-                            ClientId = client.Id,
-                        };
-                        _cardRepository.Save(newCard);
-                        return StatusCode(201, new CardDTO(newCard));
-                    }
+                    return StatusCode(403, errorMessage);
                 }
                 else
                 {
-                    return StatusCode(403, $"Max number of cards of type {cardType.ToString()}");
+                    CardDTO cardDTO = _cardService.createCard(currentClientId, newCardDTO);
+                    return StatusCode(201, cardDTO);
                 }
-
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpGet("current/cards")]
         [Authorize(Policy = "ClientOnly")]
         public IActionResult GetCurrentClientCards()
         {
             try
             {
-                Client client = getCurrentClient();
-                var clientCards = _cardRepository.GetCardsByClient(client.Id);
-                var clientCardsDTO = clientCards.Select(cc => new CardDTO(cc)).ToList();
+
+                string currentClientEmail = getCurrentClientEmail();
+                long currentClientId = _clientService.getCurrentClientDTO(currentClientEmail).Id;
+                var clientCardsDTO = _cardService.getClientCards(currentClientId);
                 return Ok(clientCardsDTO);
             }
             catch (Exception ex)

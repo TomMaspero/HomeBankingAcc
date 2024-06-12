@@ -11,11 +11,15 @@ namespace HomeBankingAcc.Services.Implementations
         private readonly IClientRepository _clientRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly ICardRepository _cardRepository;
-        public ClientService(IClientRepository clientRepository, IAccountRepository accountRepository, ICardRepository cardRepository)
+        private readonly IAccountService _accountService;
+        private readonly ICardService _cardService;
+        public ClientService(IClientRepository clientRepository, IAccountRepository accountRepository, ICardRepository cardRepository, IAccountService accountService, ICardService cardService)
         {
             _clientRepository = clientRepository;
             _accountRepository = accountRepository;
             _cardRepository = cardRepository;
+            _accountService = accountService;
+            _cardService = cardService;
         }
         public IEnumerable<ClientDTO> GetAllClients()
         {
@@ -30,36 +34,6 @@ namespace HomeBankingAcc.Services.Implementations
             var clientDTO = new ClientDTO(client);
             return clientDTO;
         }
-        public string createAccountNumber()
-        {
-            string accNumber = "";
-            do
-            {
-                accNumber = "VIN-" + RandomNumberGenerator.GetInt32(0, 99999999);
-            } while (_accountRepository.GetAccountByNumber(accNumber) != null);
-            return accNumber;
-        }
-        public string genCardNumber()
-        {
-            string cardNumber = "";
-            List<int> cardDigits = new List<int>();
-            do
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    int digits = RandomNumberGenerator.GetInt32(1, 9999);
-                    cardDigits.Add(digits);
-                }
-                cardNumber = string.Join("-", cardDigits.ConvertAll(d => d.ToString("D4")));
-
-            } while (_cardRepository.FindByNumber(cardNumber) != null);
-            return cardNumber;
-        }
-        public int genCvv()
-        {
-            return RandomNumberGenerator.GetInt32(0, 999);
-        }
-
         public Client getCurrentClient(string email)
         {
             if (email == null)
@@ -75,10 +49,68 @@ namespace HomeBankingAcc.Services.Implementations
             var clientDTO = new ClientDTO(client);
             return clientDTO;
         }
-
-        public validateClient(NewClientDTO newClientDTO)
+        public (bool isValid, string errorMessage) validateClient(NewClientDTO newClientDTO)
         {
+            if (string.IsNullOrWhiteSpace(newClientDTO.FirstName))
+                return (false, "First name is required.");
+            if (string.IsNullOrWhiteSpace(newClientDTO.LastName))
+                return (false, "Last name is required.");
+            if (string.IsNullOrWhiteSpace(newClientDTO.Email))
+                return (false, "Email is required.");
+            if (string.IsNullOrWhiteSpace(newClientDTO.Password))
+                return (false, "Password is required.");
 
+            Client existingClient = _clientRepository.FindByEmail(newClientDTO.Email);
+            if (existingClient != null)
+                return (false, "Email already in use.");
+
+            return (true, string.Empty);
+        }
+        public ClientDTO createClient(NewClientDTO newClientDTO)
+        {
+            Client newClient = new Client
+            {
+                FirstName = newClientDTO.FirstName,
+                LastName = newClientDTO.LastName,
+                Email = newClientDTO.Email,
+                Password = newClientDTO.Password,
+            };
+            _clientRepository.Save(newClient);
+
+            Client createdClient = _clientRepository.FindByEmail(newClientDTO.Email);
+
+            Account newAccount = new Account
+            {
+                Number = _accountService.createAccountNumber(),
+                CreationDate = DateTime.Now,
+                Balance = 0,
+                ClientId = createdClient.Id
+            };
+            _accountRepository.Save(newAccount);
+
+            return new ClientDTO(newClientDTO);
+        }
+        public bool validateAccountCount(long clientId)
+        {
+            Client client = _clientRepository.FindById(clientId);
+            return client.Accounts.Count() < 3 ? true : false;
+        }
+        public (bool isValid, string errorMessage) validateClientCards(long clientId, NewCardDTO newCardDTO)
+        {
+            CardType cardType = (CardType)Enum.Parse(typeof(CardType), newCardDTO.type);
+            CardColor cardColor = (CardColor)Enum.Parse(typeof(CardColor), newCardDTO.color);
+
+            List<Card> ClientCards = (List<Card>)_cardRepository.FindByType(cardType, clientId);
+
+            if (ClientCards.Count < 3)
+            {
+                if (ClientCards.Any(card => card.Color == cardColor))
+                    return (false, "Card already exists");
+                else
+                    return (true, string.Empty);
+            }
+            else
+                return (false, $"Max number of cards of type {cardType.ToString()}");
         }
     }
 }
