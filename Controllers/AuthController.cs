@@ -1,6 +1,5 @@
 ﻿using HomeBankingAcc.DTOs;
-using HomeBankingAcc.Models;
-using HomeBankingAcc.Repositories;
+using HomeBankingAcc.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +12,11 @@ namespace HomeBankingAcc.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IClientRepository _clientRepository;
+        private readonly IClientService _clientService;
 
-        public AuthController(IClientRepository clientRepository)
+        public AuthController(IClientService clientService)
         {
-            _clientRepository = clientRepository;
+            _clientService = clientService;
         }
 
         [HttpPost("login")]
@@ -25,22 +24,16 @@ namespace HomeBankingAcc.Controllers
         {
             try
             {
-                Client user = _clientRepository.FindByEmail(loginDTO.Email);
-                if(user == null)
-                {
-                    return StatusCode(403, "User not found");
-                }
-                if (!user.Password.Equals(loginDTO.Password))
-                {
-                    return StatusCode(403, "Invalid password");
-                }
+                var (isValid, errorMessage) = _clientService.validateClientUser(loginDTO);
+                if (!isValid)
+                    return StatusCode(403, errorMessage);
                 var claims = new List<Claim>
                 {
-                    new Claim("Client", user.Email)
+                    new Claim("Client", loginDTO.Email)
                 };
-                if (user.Email.Equals("kaladin_bridge4@gmail.com"))
+                if (loginDTO.Email.Equals("kaladin_bridge4@gmail.com"))
                 {
-                    Claim adminClaim = new Claim("Admin", user.Email);
+                    Claim adminClaim = new Claim("Admin", "true");
                     claims.Add(adminClaim);
                 }
                 var claimsIdentity = new ClaimsIdentity(

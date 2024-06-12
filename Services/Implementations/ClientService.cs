@@ -110,5 +110,14 @@ namespace HomeBankingAcc.Services.Implementations
             else
                 return (false, $"Max number of cards of type {cardType.ToString()}");
         }
+        public (bool isValid, string errorMessage) validateClientUser(LoginDTO loginDTO)
+        {
+            Client user = _clientRepository.FindByEmail(loginDTO.Email);
+            if (user == null)
+                return (false, "User not found");
+            if (!user.Password.Equals(loginDTO.Password))
+                return (false, "Invalid password");
+            return (true, string.Empty);
+        }
     }
 }
