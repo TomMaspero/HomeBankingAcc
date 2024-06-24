@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "http": {
+    "HomeBanking": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
